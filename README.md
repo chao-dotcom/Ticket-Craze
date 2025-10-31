@@ -129,9 +129,7 @@ docker-compose exec api-1 npm run setup:redis
 curl http://localhost:3001/health
 
 # 4. Test purchase
-curl -X POST http://localhost/api/v1/flash/purchase \
-  -H "Content-Type: application/json" \
-  -d '{"userId":"123","skuId":"1","quantity":1,"idempotencyKey":"test-1"}'
+curl -X POST http://localhost/api/v1/flash/purchase -H "Content-Type: application/json" -d '{"userId":"123","skuId":"1","quantity":1,"idempotencyKey":"test-1"}'
 
 # 5. Run tests
 docker-compose exec api-1 npm test
@@ -211,7 +209,7 @@ Purchase tickets during a flash sale.
 
 - **API Response Time**: <200ms (p95)
 - **Throughput**: 1000+ req/sec
-- **Inventory Operations**: Atomic via Redis Lua
+- **Inventory Operations**: Atomic via Redis Lua scripts
 - **Event Processing**: Async via Kafka
 
 ## License
