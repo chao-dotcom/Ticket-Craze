@@ -1,0 +1,23 @@
+# File: k8s/config.yaml
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: flash-sale-config
+  namespace: flash-sale
+data:
+  kafka-brokers: "kafka-0.kafka-headless:9092,kafka-1.kafka-headless:9092,kafka-2.kafka-headless:9092"
+  mysql-host: "mysql-primary.database.svc.cluster.local"
+  redis-host: "redis-master.cache.svc.cluster.local"
+---
+apiVersion: v1
+kind: Secret
+metadata:
+  name: flash-sale-secrets
+  namespace: flash-sale
+type: Opaque
+stringData:
+  redis-url: "redis://redis-master.cache.svc.cluster.local:6379"
+  mysql-user: "flashuser"
+  mysql-password: "CHANGE_ME_IN_PRODUCTION"
+  jwt-secret: "CHANGE_ME_IN_PRODUCTION"
+

@@ -1,0 +1,66 @@
+# File: k8s/worker-deployment.yaml
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: order-worker
+  namespace: flash-sale
+spec:
+  replicas: 5
+  selector:
+    matchLabels:
+      app: order-worker
+  template:
+    metadata:
+      labels:
+        app: order-worker
+    spec:
+      containers:
+      - name: worker
+        image: flash-sale-api:latest
+        command: ["node", "src/workers/order-worker.js"]
+        env:
+        - name: NODE_ENV
+          value: "production"
+        - name: REDIS_URL
+          valueFrom:
+            secretKeyRef:
+              name: flash-sale-secrets
+              key: redis-url
+        - name: KAFKA_BROKERS
+          valueFrom:
+            configMapKeyRef:
+              name: flash-sale-config
+              key: kafka-brokers
+        - name: MYSQL_HOST
+          valueFrom:
+            configMapKeyRef:
+              name: flash-sale-config
+              key: mysql-host
+        - name: MYSQL_USER
+          valueFrom:
+            secretKeyRef:
+              name: flash-sale-secrets
+              key: mysql-user
+        - name: MYSQL_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: flash-sale-secrets
+              key: mysql-password
+        - name: MYSQL_DATABASE
+          value: "flash_sale"
+        resources:
+          requests:
+            memory: "256Mi"
+            cpu: "250m"
+          limits:
+            memory: "512Mi"
+            cpu: "500m"
+        livenessProbe:
+          exec:
+            command:
+            - node
+            - -e
+            - "process.exit(0)"
+          initialDelaySeconds: 30
+          periodSeconds: 10
+

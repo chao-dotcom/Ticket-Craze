@@ -1,0 +1,39 @@
+{
+  "name": "flash-sale-system",
+  "version": "1.0.0",
+  "description": "High-concurrency flash sale ticketing system",
+  "main": "src/index.js",
+  "scripts": {
+    "start": "node src/index.js",
+    "dev": "nodemon src/index.js",
+    "worker": "node src/workers/order-worker.js",
+    "test": "jest --coverage",
+    "test:integration": "jest --testPathPattern=tests/integration",
+    "test:load": "k6 run tests/load/purchase.js",
+    "lint": "eslint src/",
+    "setup:kafka": "node scripts/setup-kafka-topics.js",
+    "setup:redis": "node scripts/init-inventory.js"
+  },
+  "dependencies": {
+    "express": "^4.18.2",
+    "redis": "^4.6.7",
+    "kafkajs": "^2.2.4",
+    "mysql2": "^3.5.0",
+    "prom-client": "^14.2.0",
+    "winston": "^3.10.0",
+    "dotenv": "^16.3.1",
+    "helmet": "^7.0.0",
+    "express-rate-limit": "^6.9.0",
+    "joi": "^17.9.2",
+    "uuid": "^9.0.0",
+    "jsonwebtoken": "^9.0.2"
+  },
+  "devDependencies": {
+    "nodemon": "^3.0.1",
+    "jest": "^29.6.2",
+    "supertest": "^6.3.3",
+    "eslint": "^8.46.0",
+    "@types/node": "^20.4.5"
+  }
+}
+
