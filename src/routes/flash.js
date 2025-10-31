@@ -38,8 +38,19 @@ async function initializeFlashSale() {
   if (isInitialized) return;
   
   try {
-    await redisClient.connect();
-    await producer.connect();
+    // Check if Redis is already connected before connecting
+    if (!redisClient.isOpen) {
+      await redisClient.connect();
+    }
+    // Connect Kafka producer (kafkajs handles multiple connect calls gracefully)
+    try {
+      await producer.connect();
+    } catch (error) {
+      // Ignore "already connected" errors
+      if (!error.message || !error.message.includes('already')) {
+        throw error;
+      }
+    }
     luaScripts = await loadLuaScripts(redisClient);
     isInitialized = true;
     console.log('Flash sale module initialized');
@@ -48,9 +59,6 @@ async function initializeFlashSale() {
     throw error;
   }
 }
-
-// Initialize on module load
-initializeFlashSale().catch(console.error);
 
 // Main purchase endpoint
 router.post('/purchase', async (req, res) => {
