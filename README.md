@@ -2,6 +2,13 @@
 
 A production-grade, high-concurrency flash sale ticketing system capable of handling thousands of concurrent requests with zero overselling.
 
+## Documentation Links
+
+1. [Overview](https://hackmd.io/@chaodotcom/BJFrC6jyWg)
+2. [Redis](https://hackmd.io/@chaodotcom/H1pwATjkWe)
+3. [Kafka](https://hackmd.io/@chaodotcom/BJCkJAikWl)
+4. [Eventual Consistency Architecture](https://hackmd.io/@chaodotcom/ry5ZJRi1Wx)
+
 ## Features
 
 - **High Concurrency**: Handle 1000+ requests/second during flash sales
@@ -12,11 +19,42 @@ A production-grade, high-concurrency flash sale ticketing system capable of hand
 
 ## Architecture
 
+### System Architecture Diagram
+
+```mermaid
+graph TB
+    User[User/Browser] -->|HTTP POST| Nginx[Nginx Load Balancer]
+    Nginx -->|Load Balance| API1[API Server 1]
+    Nginx -->|Load Balance| API2[API Server 2]
+    
+    API1 -->|Check Inventory| Redis[(Redis)]
+    API1 -->|Publish Event| Kafka[Kafka]
+    API2 -->|Check Inventory| Redis
+    API2 -->|Publish Event| Kafka
+    
+    Redis -->|Inventory Data| API1
+    Redis -->|Inventory Data| API2
+    
+    Kafka -->|Consume| Worker[Order Worker]
+    Worker -->|Insert Order| MySQL[(MySQL)]
+    Worker -->|Publish| Kafka2[Kafka Orders Topic]
+    
+    Cleanup[Cleanup Job] -->|Query Expired| MySQL
+    Cleanup -->|Return Inventory| Redis
+    
+    Prometheus[Prometheus] -->|Metrics| API1
+    Prometheus -->|Metrics| API2
+    Grafana[Grafana] -->|Query| Prometheus
+    
+    style Redis fill:#dc382d
+    style MySQL fill:#00758f
+    style Kafka fill:#231f20
+    style Nginx fill:#009639
 ```
-Clients → Nginx → Express API → Redis (Inventory) + Kafka (Events)
-                                              ↓
-                                         Order Worker → MySQL
-```
+
+### Database Schema ERD
+
+![Database Schema ERD](asset/schema_erd.png)
 
 ## Quick Start
 
