@@ -15,7 +15,7 @@ A production-grade, high-concurrency flash sale ticketing system capable of hand
 
 ### Distributed System Notes for Beginners
 
-These notes are designed for beginners who want to understand how a flash-sale or high-concurrency ordering system works. The goal is to explain the "why" behind each component, not just throw architecture diagrams around.
+I wrote these docus for beginners who want to understand how a flash-sale or high-concurrency ordering system works. The goal is to explain the "why" behind each component, not just throw architecture diagrams around.
 
 We will walk through the system step by step, starting from the big picture, then moving into Redis, Kafka, and finally the idea of eventual consistency. Each document builds on the previous one, so you can follow along without feeling lost.
 
