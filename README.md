@@ -2,13 +2,6 @@
 
 A production-grade, high-concurrency flash sale ticketing system capable of handling thousands of concurrent requests with zero overselling.
 
-## Documentation Links
-
-1. [Overview](https://hackmd.io/@chaodotcom/BJFrC6jyWg)
-2. [Redis](https://hackmd.io/@chaodotcom/H1pwATjkWe)
-3. [Kafka](https://hackmd.io/@chaodotcom/BJCkJAikWl)
-4. [Eventual Consistency Architecture](https://hackmd.io/@chaodotcom/ry5ZJRi1Wx)
-
 ## Features
 
 - **High Concurrency**: Handle 1000+ requests/second during flash sales
@@ -16,6 +9,29 @@ A production-grade, high-concurrency flash sale ticketing system capable of hand
 - **Fast Response**: Sub-200ms API response times
 - **Event-Driven**: Resilient async processing with Kafka
 - **Horizontally Scalable**: All components can scale independently
+
+
+## Documentation Links
+
+### Distributed System Notes for Beginners
+
+These notes are designed for beginners who want to understand how a flash-sale or high-concurrency ordering system works. The goal is to explain the "why" behind each component, not just throw architecture diagrams around.
+
+We will walk through the system step by step, starting from the big picture, then moving into Redis, Kafka, and finally the idea of eventual consistency. Each document builds on the previous one, so you can follow along without feeling lost.
+
+**Contents:**
+
+1. **[Overview](https://hackmd.io/@chaodotcom/BJFrC6jyWg)**  
+   Why systems need Redis and Kafka in the first place, and how these pieces fit together.
+
+2. **[Redis](https://hackmd.io/@chaodotcom/H1pwATjkWe)**  
+   What role Redis plays in high-concurrency systems, how we use it, and a short introduction to Redis Cluster.
+
+3. **[Kafka](https://hackmd.io/@chaodotcom/BJCkJAikWl)**  
+   Why Kafka is used, how it supports idempotency and distributed coordination. This chapter assumes basic Kafka familiarity. I recommend this [intro video](https://www.bilibili.com/video/BV1dpuXzSEZN/) for visualization.
+
+4. **[Eventual Consistency](https://hackmd.io/@chaodotcom/ry5ZJRi1Wx)**  
+   Why we choose eventual consistency instead of strict immediate consistency. How to make an eventually consistent system traceable, repairable, and trustworthy.
 
 ## Architecture
 
