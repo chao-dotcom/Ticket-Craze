@@ -21,16 +21,16 @@ We will walk through the system step by step, starting from the big picture, the
 
 **Contents:**
 
-1. **[Ticket-Craze:Overview](https://hackmd.io/@chaodotcom/BJFrC6jyWg)**  
+1. **[Ticket-Craze: System Overview](https://hackmd.io/@chaodotcom/BJFrC6jyWg)**  
    Why systems need Redis and Kafka in the first place, and how these pieces fit together.
 
-2. **[Ticket-Craze:Redis](https://hackmd.io/@chaodotcom/H1pwATjkWe)**  
+2. **[Ticket-Craze: Redis](https://hackmd.io/@chaodotcom/H1pwATjkWe)**  
    What role Redis plays in high-concurrency systems, how we use it, and a short introduction to Redis Cluster.
 
-3. **[Ticket-Craze:Kafka](https://hackmd.io/@chaodotcom/BJCkJAikWl)**  
+3. **[Ticket-Craze: Kafka](https://hackmd.io/@chaodotcom/BJCkJAikWl)**  
    Why Kafka is used, how it supports idempotency and distributed coordination. This chapter assumes basic Kafka familiarity. I recommend this [intro video](https://www.bilibili.com/video/BV1dpuXzSEZN/) for visualization.
 
-4. **[Ticket-Craze:Eventual Consistency](https://hackmd.io/@chaodotcom/ry5ZJRi1Wx)**  
+4. **[Ticket-Craze: Eventual Consistency](https://hackmd.io/@chaodotcom/ry5ZJRi1Wx)**  
    Why we choose eventual consistency instead of strict immediate consistency. How to make an eventually consistent system traceable, repairable, and trustworthy.
 
 ## Architecture
