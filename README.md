@@ -33,40 +33,6 @@ We will walk through the system step by step, starting from the big picture, the
 4. **[Ticket-Craze: Eventual Consistency](https://hackmd.io/@chaodotcom/ry5ZJRi1Wx)**  
    Why we choose eventual consistency instead of strict immediate consistency. How to make an eventually consistent system traceable, repairable, and trustworthy.
 
-## Architecture
-
-### System Architecture Diagram
-
-```mermaid
-graph TB
-    User[User/Browser] -->|HTTP POST| Nginx[Nginx Load Balancer]
-    Nginx -->|Load Balance| API1[API Server 1]
-    Nginx -->|Load Balance| API2[API Server 2]
-    
-    API1 -->|Check Inventory| Redis[(Redis)]
-    API1 -->|Publish Event| Kafka[Kafka]
-    API2 -->|Check Inventory| Redis
-    API2 -->|Publish Event| Kafka
-    
-    Redis -->|Inventory Data| API1
-    Redis -->|Inventory Data| API2
-    
-    Kafka -->|Consume| Worker[Order Worker]
-    Worker -->|Insert Order| MySQL[(MySQL)]
-    Worker -->|Publish| Kafka2[Kafka Orders Topic]
-    
-    Cleanup[Cleanup Job] -->|Query Expired| MySQL
-    Cleanup -->|Return Inventory| Redis
-    
-    Prometheus[Prometheus] -->|Metrics| API1
-    Prometheus -->|Metrics| API2
-    Grafana[Grafana] -->|Query| Prometheus
-    
-    style Redis fill:#dc382d
-    style MySQL fill:#00758f
-    style Kafka fill:#231f20
-    style Nginx fill:#009639
-```
 
 ### Database Schema ERD
 
@@ -208,19 +174,38 @@ docker-compose exec api-1 node scripts/init-inventory.js
 npm run test:load
 ```
 
-## Testing Results
+## Stress Testing Results
 
 ### Load Testing Performance
 
-The system has been stress tested under heavy load conditions using k6. Here are the key performance metrics:
+The system has been stress tested under heavy load conditions using k6. The test demonstrates the system's ability to handle high concurrency while maintaining zero overselling and excellent response times.
 
-**Heavy Load Test (1000 concurrent users, 9m 30s duration):**
-- **Total Requests**: 612,839
-- **Throughput**: ~1,135 requests/second
-- **Average Response Time**: 204ms
-- **Successful Purchases**: 4,350 (matches inventory capacity)
-- **Zero Infrastructure Errors**: System handled load without failures
-- **No Rate Limiting**: System processed traffic without throttling
+![Heavy Load Test Results](asset/heavy-load-result.png)
+
+### Load Test Summary (k6)
+
+#### Test Setup
+
+| Item | Value |
+|------|-------|
+| Duration | 9m 30s (5-stage ramp up/down) |
+| Virtual Users (max) | 1000 |
+| Total Requests | 612,839 |
+| Throughput | ~1,135 req/s |
+| Success Criteria | Status 200 (success) or 410 (sold out) |
+
+#### 📊 Key Results
+
+| Metric | Description | Result | Interpretation |
+|--------|-------------|--------|----------------|
+| ✅ Checks Passed | Requests meeting success condition (200 or 410) | 66.66 % | Expected — majority correctly returned 410 when sold out |
+| 🛒 purchase_success_total | Successful purchases | 4,350 | Matches expected inventory (successful orders) |
+| 🚫 purchase_sold_out_total | "Sold out" responses | 608,489 | Expected behavior after inventory depletion |
+| ⚡ http_req_duration (avg) | Average response time per request | 204 ms | Excellent latency under load |
+| 💥 http_req_failed | Requests not 2xx (includes 410) | 99.29 % | Misleading — these are logical fails, not server errors |
+| 🧱 Rate Limited (429) | Requests blocked by rate limiting | 0 % | None — system handled traffic without throttling |
+| 🌐 Throughput | Requests processed per second | ~1.1 k req/s | Strong sustained throughput |
+| 🔒 Errors | Network / script errors | 0 | No infrastructure errors detected |
 
 **Key Highlights:**
 - ✅ System successfully handled 1000+ concurrent users
@@ -229,7 +214,8 @@ The system has been stress tested under heavy load conditions using k6. Here are
 - ✅ Proper handling of inventory depletion (410 responses when sold out)
 - ✅ No technical errors - all failures were expected business logic (sold out)
 
-For detailed k6 test results, interpretation guidelines, and information about testing scripts, see the [Load Testing Guide](tests/load/README.md).
+For more information on k6 testing scripts, interpretation guidelines, and additional test configurations, see the [Load Testing Guide](tests/load/README.md).
+
 
 ## Monitoring
 
