@@ -37,7 +37,9 @@ export default function () {
     { headers: { 'Content-Type': 'application/json' }, timeout: '20s' }
   );
 
-  check(response, {
+  const success = check(response, {
+    'status is 200 or 410': (r) => r.status === 200 || r.status === 410,
+    'status is 429 (rate limited)': (r) => r.status === 429,
     'got response': (r) => r.status !== 0,
   });
 }

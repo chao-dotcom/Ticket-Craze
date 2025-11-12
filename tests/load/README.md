@@ -84,6 +84,37 @@ To demonstrate the throughput improvement from Nginx load balancing:
    - Load balanced throughput: Higher throughput due to load distribution
    - Improvement: Better resource utilization across API instances
 
+## K6 Testing/Interpretation
+
+### Heavy Load Test Results
+
+![Heavy Load Test Results](../asset/heavy-load-result.png)
+
+### 🚀 Load Test Summary (k6)
+
+#### Test Setup
+
+| Item | Value |
+|------|-------|
+| Duration | 9m 30s (5-stage ramp up/down) |
+| Virtual Users (max) | 1000 |
+| Total Requests | 612,839 |
+| Throughput | ~1,135 req/s |
+| Success Criteria | Status 200 (success) or 410 (sold out) |
+
+#### 📊 Key Results
+
+| Metric | Description | Result | Interpretation |
+|--------|-------------|--------|----------------|
+| ✅ Checks Passed | Requests meeting success condition (200 or 410) | 66.66 % | Expected — majority correctly returned 410 when sold out |
+| 🛒 purchase_success_total | Successful purchases | 4,350 | Matches expected inventory (successful orders) |
+| 🚫 purchase_sold_out_total | "Sold out" responses | 608,489 | Expected behavior after inventory depletion |
+| ⚡ http_req_duration (avg) | Average response time per request | 204 ms | Excellent latency under load |
+| 💥 http_req_failed | Requests not 2xx (includes 410) | 99.29 % | Misleading — these are logical fails, not server errors |
+| 🧱 Rate Limited (429) | Requests blocked by rate limiting | 0 % | None — system handled traffic without throttling |
+| 🌐 Throughput | Requests processed per second | ~1.1 k req/s | Strong sustained throughput |
+| 🔒 Errors | Network / script errors | 0 | No infrastructure errors detected |
+
 ## Tips for Accurate Testing
 
 1. **Warm-up Period**: Allow system to stabilize (first 30-60 seconds of test)

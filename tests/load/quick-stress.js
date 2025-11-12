@@ -16,8 +16,9 @@ export const options = {
   ],
   thresholds: {
     http_req_duration: ['p(95)<500', 'p(99)<1000'],
-    errors: ['rate<0.1'],
-    http_req_failed: ['rate<0.05'],
+    errors: ['rate<0.1'],  // Actual errors only (410 and 429 excluded)
+    // Note: http_req_failed will still count 410, but that's okay for monitoring
+    // The important metric is 'errors' which excludes expected responses
   },
 };
 
@@ -49,13 +50,13 @@ export default function () {
   );
 
   const success = check(response, {
-    'status is 200': (r) => r.status === 200,
-    'status is 410 (sold out)': (r) => r.status === 410,
+    'status is 200 or 410': (r) => r.status === 200 || r.status === 410,
     'status is 429 (rate limited)': (r) => r.status === 429,
-    'has reservationId': (r) => r.status === 200 && JSON.parse(r.body).reservationId,
+    'has reservationId': (r) => r.status === 200 && r.json('reservationId') !== undefined,
     'response time < 500ms': (r) => r.timings.duration < 500,
   });
 
+  // Only count actual errors, not 410 (sold out) or 429 (rate limited)
   errorRate.add(!success && response.status !== 410 && response.status !== 429);
 
   sleep(Math.random() * 1 + 0.5);  // Shorter think time 0.5-1.5s for faster test
