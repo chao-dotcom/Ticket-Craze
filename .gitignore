@@ -3,7 +3,7 @@ node_modules/
 package-lock.json
 
 # Guide files
-guide/
+guide2/
 
 # Validation scripts
 validate.sh
