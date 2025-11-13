@@ -89,7 +89,6 @@ The system has been stress tested under heavy load conditions using k6. The test
 | 🚫 purchase_sold_out_total | "Sold out" responses | 608,489 | Expected behavior after inventory depletion |
 | ⚡ http_req_duration (avg) | Average response time per request | 204 ms | Excellent latency under load |
 | 💥 http_req_failed | Requests not 2xx (includes 410) | 99.29 % | Misleading — these are logical fails, not server errors |
-| 🧱 Rate Limited (429) | Requests blocked by rate limiting | 0 % | None — system handled traffic without throttling |
 | 🌐 Throughput | Requests processed per second | ~1.1 k req/s | Strong sustained throughput |
 | 🔒 Errors | Network / script errors | 0 | No infrastructure errors detected |
 
@@ -149,7 +148,7 @@ docker-compose exec api-1 npm run test:integration
 npm run test:load
 ```
 
-For detailed testing instructions, see [Testing Guide](guide/demo.md).
+For detailed testing instructions, see [Load Testing Guide](tests/load/README.md).
 
 ## Development
 
