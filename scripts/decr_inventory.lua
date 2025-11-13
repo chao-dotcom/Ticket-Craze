@@ -4,6 +4,7 @@
 -- ARGV[2] -> reservation key prefix (e.g., "resv:sku:123")
 -- ARGV[3] -> reservationId (unique identifier)
 -- ARGV[4] -> TTL in seconds (reservation expiry)
+-- ARGV[5] -> timestamp (Unix timestamp in seconds) - passed from Node.js to avoid non-deterministic TIME call
 
 local inv = tonumber(redis.call("GET", KEYS[1]) or "-1")
 local dec = tonumber(ARGV[1])
@@ -24,9 +25,10 @@ local new_inv = redis.call("DECRBY", KEYS[1], dec)
 -- Create reservation record with TTL
 if ARGV[2] and ARGV[3] and ARGV[4] then
   local resv_key = ARGV[2] .. ":" .. ARGV[3]
+  local timestamp = ARGV[5] or tostring(redis.call("TIME")[1])  -- Use passed timestamp, fallback to TIME if not provided
   redis.call("HMSET", resv_key, 
     "qty", dec, 
-    "createdAt", redis.call("TIME")[1],
+    "createdAt", timestamp,
     "status", "pending"
   )
   redis.call("EXPIRE", resv_key, tonumber(ARGV[4]))

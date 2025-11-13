@@ -137,7 +137,8 @@ router.post('/purchase', async (req, res) => {
           String(quantity),
           resvPrefix,
           reservationId,
-          String(ttl)
+          String(ttl),
+          String(Math.floor(Date.now() / 1000))  // Pass timestamp to avoid non-deterministic TIME call in Lua
         ]
       }
     );

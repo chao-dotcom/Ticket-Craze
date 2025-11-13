@@ -1,0 +1,282 @@
+{
+  "root_group": {
+    "checks": [
+      {
+        "name": "status is 200 or 410",
+        "path": "::status is 200 or 410",
+        "id": "846b08182698182c01204dcf18a9e237",
+        "passes": 10289,
+        "fails": 2078
+      },
+      {
+        "name": "status is 429 (rate limited)",
+        "path": "::status is 429 (rate limited)",
+        "id": "a24458c765701a3f797ed9fe7f1da6ba",
+        "passes": 0,
+        "fails": 12367
+      },
+      {
+        "fails": 10095,
+        "name": "has reservationId",
+        "path": "::has reservationId",
+        "id": "85cf110a6d3c6fb0c258d9fa420a078a",
+        "passes": 2272
+      },
+      {
+        "passes": 12367,
+        "fails": 0,
+        "name": "response time < 1000ms",
+        "path": "::response time < 1000ms",
+        "id": "20fb4e832cf064157637fa0f29b41aa6"
+      }
+    ],
+    "name": "",
+    "path": "",
+    "id": "d41d8cd98f00b204e9800998ecf8427e",
+    "groups": []
+  },
+  "options": {
+    "summaryTimeUnit": "",
+    "noColor": false,
+    "summaryTrendStats": [
+      "avg",
+      "min",
+      "med",
+      "max",
+      "p(90)",
+      "p(95)"
+    ]
+  },
+  "state": {
+    "isStdOutTTY": true,
+    "isStdErrTTY": true,
+    "testRunDurationMs": 61381.6244
+  },
+  "metrics": {
+    "http_reqs": {
+      "type": "counter",
+      "contains": "default",
+      "values": {
+        "count": 12367,
+        "rate": 201.47723558778935
+      }
+    },
+    "http_req_sending": {
+      "type": "trend",
+      "contains": "time",
+      "values": {
+        "min": 0,
+        "med": 0,
+        "max": 1.6253,
+        "p(90)": 0,
+        "p(95)": 0,
+        "avg": 0.012547376081507237
+      }
+    },
+    "checks": {
+      "type": "rate",
+      "contains": "default",
+      "values": {
+        "rate": 0.503921727177165,
+        "passes": 24928,
+        "fails": 24540
+      }
+    },
+    "purchase_sold_out_total": {
+      "type": "counter",
+      "contains": "default",
+      "values": {
+        "count": 8017,
+        "rate": 130.60912086256224
+      }
+    },
+    "http_req_connecting": {
+      "values": {
+        "max": 14.8639,
+        "p(90)": 0,
+        "p(95)": 0,
+        "avg": 0.03333725236516537,
+        "min": 0,
+        "med": 0
+      },
+      "type": "trend",
+      "contains": "time"
+    },
+    "http_req_waiting": {
+      "type": "trend",
+      "contains": "time",
+      "values": {
+        "avg": 8.88631747392258,
+        "min": 0,
+        "med": 2.1891,
+        "max": 187.3866,
+        "p(90)": 27.609039999999997,
+        "p(95)": 34.40356999999998
+      }
+    },
+    "http_req_receiving": {
+      "type": "trend",
+      "contains": "time",
+      "values": {
+        "avg": 0.20545005255922996,
+        "min": 0,
+        "med": 0,
+        "max": 8.5386,
+        "p(90)": 0.7467999999999998,
+        "p(95)": 0.9179099999999997
+      }
+    },
+    "purchase_errors_total": {
+      "values": {
+        "count": 2078,
+        "rate": 33.853779861844124
+      },
+      "type": "counter",
+      "contains": "default"
+    },
+    "http_req_duration": {
+      "type": "trend",
+      "contains": "time",
+      "values": {
+        "p(90)": 27.98444,
+        "p(95)": 34.662639999999996,
+        "avg": 9.104314902563312,
+        "min": 0,
+        "med": 2.3446,
+        "max": 187.3866
+      },
+      "thresholds": {
+        "p(95)<800": {
+          "ok": true
+        },
+        "p(99)<1500": {
+          "ok": true
+        }
+      }
+    },
+    "errors": {
+      "type": "rate",
+      "contains": "default",
+      "values": {
+        "rate": 0.35174254063232796,
+        "passes": 4350,
+        "fails": 8017
+      },
+      "thresholds": {
+        "rate<0.1": {
+          "ok": false
+        }
+      }
+    },
+    "http_req_tls_handshaking": {
+      "type": "trend",
+      "contains": "time",
+      "values": {
+        "avg": 0,
+        "min": 0,
+        "med": 0,
+        "max": 0,
+        "p(90)": 0,
+        "p(95)": 0
+      }
+    },
+    "purchase_success_total": {
+      "type": "counter",
+      "contains": "default",
+      "values": {
+        "rate": 37.01433486338299,
+        "count": 2272
+      }
+    },
+    "vus": {
+      "values": {
+        "max": 498,
+        "value": 2,
+        "min": 2
+      },
+      "type": "gauge",
+      "contains": "default"
+    },
+    "iteration_duration": {
+      "type": "trend",
+      "contains": "time",
+      "values": {
+        "p(90)": 1408.0970399999999,
+        "p(95)": 1460.21821,
+        "avg": 1010.7456744723843,
+        "min": 501.279,
+        "med": 1015.4164,
+        "max": 1574.2596
+      }
+    },
+    "http_req_blocked": {
+      "type": "trend",
+      "contains": "time",
+      "values": {
+        "p(90)": 0,
+        "p(95)": 0,
+        "avg": 0.03821388372281073,
+        "min": 0,
+        "med": 0,
+        "max": 16.1203
+      }
+    },
+    "http_req_failed": {
+      "type": "rate",
+      "contains": "default",
+      "values": {
+        "rate": 0.8162852753295059,
+        "passes": 10095,
+        "fails": 2272
+      }
+    },
+    "iterations": {
+      "contains": "default",
+      "values": {
+        "rate": 201.47723558778935,
+        "count": 12367
+      },
+      "type": "counter"
+    },
+    "http_req_duration{expected_response:true}": {
+      "contains": "time",
+      "values": {
+        "min": 12.2607,
+        "med": 27.42015,
+        "max": 187.3866,
+        "p(90)": 40.66678,
+        "p(95)": 46.1271,
+        "avg": 29.41754031690138
+      },
+      "type": "trend"
+    },
+    "data_sent": {
+      "type": "counter",
+      "contains": "data",
+      "values": {
+        "rate": 51992.48197152632,
+        "count": 3191383
+      }
+    },
+    "data_received": {
+      "type": "counter",
+      "contains": "data",
+      "values": {
+        "count": 4633143,
+        "rate": 75480.94474997309
+      }
+    },
+    "vus_max": {
+      "type": "gauge",
+      "contains": "default",
+      "values": {
+        "min": 500,
+        "max": 500,
+        "value": 500
+      }
+    }
+  },
+  "setup_data": {
+    "message": "Please ensure Redis inventory is reset before running this test"
+  }
+}

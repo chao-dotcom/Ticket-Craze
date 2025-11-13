@@ -30,6 +30,20 @@ User → Nginx (Load Balancer) → API Service → Redis (Atomic Ops) → Kafka 
 
 ![Database Schema ERD](asset/schema_erd.png)
 
+### Why This Architecture?
+
+A naive implementation (in-memory inventory + direct DB writes) would:
+- ❌ **Oversell** due to race conditions
+- ❌ **Perform poorly** (200-500ms response times)
+- ❌ **Fail under load** (can't scale beyond single server)
+
+**This optimized architecture ensures:**
+- ✅ **Zero overselling** via atomic Redis operations
+- ✅ **High performance** via async Kafka processing
+- ✅ **Horizontal scalability** via shared Redis state
+
+**See [Naive vs Optimized Comparison](guide/NAIVE_VS_OPTIMIZED.md) for a detailed breakdown.**
+
 ## Features
 
 ⚙️ **Zero Overselling** – Atomic inventory control with Redis Lua scripts

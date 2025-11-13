@@ -2,6 +2,28 @@
 
 This directory contains load testing scripts for the Flash Sale Ticketing System using k6.
 
+> **For comparison testing between MySQL-only, Redis-only, and Complete implementations, see [COMPARE_README.md](./COMPARE_README.md)**
+
+## Contents
+
+- **General Load Tests**: `purchase.js`, `quick-stress.js`, `heavy-load.js`, etc.
+- **Comparison Tests**: `compare-mysql-only.js`, `compare-redis-only.js`, `compare-complete.js`
+- **Documentation**: `COMPARE_README.md` (comparison guide), `README.md` (this file)
+- **Test Results**: `RESULTS.md` (raw test outputs)
+
+## Comparison Summary
+
+The following table compares the performance of three different implementations under stress testing:
+
+| Metric | MySQL-Only | Redis-Only | Complete (Your Results) | Expected Complete |
+|--------|-----------|------------|------------------------|-------------------|
+| **Response Time** | 9.26s | 29.41ms | 6.59ms | <200ms |
+| **Throughput** | 22 req/s | 201 req/s | 203 req/s | 1000+ req/s |
+| **Error Rate** | 52.80% | 35.17% | 0.00% | <1% |
+| **Status** | ❌ Very slow | ⚠️ Better | ✅ Fast | ✅ Excellent |
+
+To see successful stress test results and detailed comparison, see [COMPARE_README.md](./COMPARE_README.md).
+
 ## Load Testing with k6
 
 k6 is used for high-performance load testing with simple JavaScript syntax.
