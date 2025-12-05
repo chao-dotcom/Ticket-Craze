@@ -49,7 +49,10 @@ dist/
 build/
 *.tgz
 
+# Backup files
+backup_js/
+
 # Temporary files
 tmp/
 temp/
-
+guide/

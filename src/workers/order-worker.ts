@@ -1,23 +1,30 @@
-// File: src/workers/order-worker.js
+import mysql from 'mysql2/promise';
+
+// Keep using require for libraries to avoid extensive typing in this pass
 const { Kafka } = require('kafkajs');
-const mysql = require('mysql2/promise');
 const { createClient } = require('redis');
 
 class OrderWorker {
+  kafka: any;
+  consumer: any;
+  producer: any;
+  dbPool: any;
+  redisClient: any;
+
   constructor() {
     this.kafka = new Kafka({
       clientId: 'order-worker',
       brokers: (process.env.KAFKA_BROKERS || 'localhost:9092').split(',')
     });
-    
-    this.consumer = this.kafka.consumer({ 
+
+    this.consumer = this.kafka.consumer({
       groupId: 'order-processing-group',
       sessionTimeout: 30000,
       heartbeatInterval: 3000
     });
 
-    this.producer = this.kafka.producer();  // For DLQ
-    
+    this.producer = this.kafka.producer();
+
     this.dbPool = mysql.createPool({
       host: process.env.MYSQL_HOST || 'localhost',
       user: process.env.MYSQL_USER || 'flashuser',
@@ -28,9 +35,7 @@ class OrderWorker {
       queueLimit: 0
     });
 
-    this.redisClient = createClient({ 
-      url: process.env.REDIS_URL || 'redis://localhost:6379'
-    });
+    this.redisClient = createClient({ url: process.env.REDIS_URL || 'redis://localhost:6379' });
   }
 
   async start() {
@@ -39,13 +44,10 @@ class OrderWorker {
       await this.consumer.connect();
       await this.producer.connect();
 
-      await this.consumer.subscribe({ 
-        topic: 'reservations',
-        fromBeginning: false 
-      });
+      await this.consumer.subscribe({ topic: 'reservations', fromBeginning: false });
 
       await this.consumer.run({
-        eachMessage: async ({ topic, partition, message }) => {
+        eachMessage: async ({ message }: any) => {
           await this.processReservation(message);
         }
       });
@@ -57,102 +59,54 @@ class OrderWorker {
     }
   }
 
-  async processReservation(message) {
+  async processReservation(message: any) {
     const traceId = message.headers?.['trace-id']?.toString();
-    
     try {
       const event = JSON.parse(message.value.toString());
       console.log(`Processing reservation ${event.reservationId}`, { traceId });
 
-      // Check if already processed (idempotency)
       const connection = await this.dbPool.getConnection();
-      
       try {
         await connection.beginTransaction();
 
-        // Check for existing order
-        const [existing] = await connection.query(
-          'SELECT id FROM orders WHERE id = ? FOR UPDATE',
-          [event.orderId]
-        );
-
+        const [existing] = await connection.query('SELECT id FROM orders WHERE id = ? FOR UPDATE', [event.orderId]);
         if (existing.length > 0) {
           console.log(`Order ${event.orderId} already exists, skipping`);
           await connection.rollback();
           return;
         }
 
-        // Insert order
         await connection.query(
           `INSERT INTO orders (id, user_id, status, total, created_at, expires_at)
            VALUES (?, ?, ?, ?, FROM_UNIXTIME(?), FROM_UNIXTIME(?))`,
-          [
-            event.orderId,
-            event.userId,
-            'PENDING',
-            0,  // Calculate from SKU price lookup
-            Math.floor(event.createdAt / 1000),
-            Math.floor(event.expiresAt / 1000)
-          ]
+          [event.orderId, event.userId, 'PENDING', 0, Math.floor(event.createdAt / 1000), Math.floor(event.expiresAt / 1000)]
         );
 
-        // Insert order items
-        await connection.query(
-          `INSERT INTO order_items (order_id, sku_id, quantity, price)
-           VALUES (?, ?, ?, ?)`,
-          [event.orderId, event.skuId, event.quantity, 0]  // Fetch price from SKU
-        );
+        await connection.query(`INSERT INTO order_items (order_id, sku_id, quantity, price) VALUES (?, ?, ?, ?)`,[event.orderId, event.skuId, event.quantity, 0]);
 
-        // Audit log
-        await connection.query(
-          `INSERT INTO inventory_audit (sku_id, change_qty, reason, ref_id)
-           VALUES (?, ?, ?, ?)`,
-          [event.skuId, -event.quantity, 'RESERVATION', event.reservationId]
-        );
+        await connection.query(`INSERT INTO inventory_audit (sku_id, change_qty, reason, ref_id) VALUES (?, ?, ?, ?)`, [event.skuId, -event.quantity, 'RESERVATION', event.reservationId]);
 
         await connection.commit();
         console.log(`Order ${event.orderId} created successfully`);
 
-        // Produce to orders topic for payment processing
-        await this.producer.send({
-          topic: 'orders',
-          messages: [{
-            key: event.orderId,
-            value: JSON.stringify({
-              ...event,
-              status: 'pending_payment'
-            })
-          }]
-        });
-
+        await this.producer.send({ topic: 'orders', messages: [{ key: event.orderId, value: JSON.stringify({ ...event, status: 'pending_payment' }) }] });
       } catch (error) {
         await connection.rollback();
         throw error;
       } finally {
         connection.release();
       }
-
     } catch (error) {
       console.error('Failed to process reservation:', error);
-      
-      // Send to dead letter queue after retries
       await this.sendToDLQ(message, error);
     }
   }
 
-  async sendToDLQ(message, error) {
+  async sendToDLQ(message: any, error: any) {
     try {
       await this.producer.send({
         topic: 'order-dead-letter',
-        messages: [{
-          key: message.key,
-          value: message.value,
-          headers: {
-            ...message.headers,
-            'error': error.message,
-            'failed-at': Date.now().toString()
-          }
-        }]
+        messages: [{ key: message.key, value: message.value, headers: { ...message.headers, error: error.message, 'failed-at': Date.now().toString() } }]
       });
     } catch (dlqError) {
       console.error('Failed to send to DLQ:', dlqError);
@@ -167,7 +121,7 @@ class OrderWorker {
   }
 }
 
-// Start worker if running directly
+// Start worker if run directly
 if (require.main === module) {
   const worker = new OrderWorker();
   worker.start().catch(console.error);
@@ -176,5 +130,5 @@ if (require.main === module) {
   process.on('SIGINT', () => worker.stop());
 }
 
-module.exports = OrderWorker;
-
+export default OrderWorker;
+(module as any).exports = OrderWorker;

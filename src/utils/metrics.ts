@@ -1,5 +1,4 @@
-// File: src/utils/metrics.js
-const client = require('prom-client');
+import client from 'prom-client';
 
 // Create a Registry
 const register = new client.Registry();
@@ -55,15 +54,14 @@ register.registerMetric(kafkaProduceLatency);
 register.registerMetric(redisOperationDuration);
 register.registerMetric(activeReservations);
 
-module.exports = {
-  register,
-  metrics: {
-    httpRequestDuration,
-    purchaseAttempts,
-    inventoryOperations,
-    kafkaProduceLatency,
-    redisOperationDuration,
-    activeReservations
-  }
+const metrics = {
+  httpRequestDuration,
+  purchaseAttempts,
+  inventoryOperations,
+  kafkaProduceLatency,
+  redisOperationDuration,
+  activeReservations
 };
 
+export { register, metrics };
+(module as any).exports = { register, metrics };

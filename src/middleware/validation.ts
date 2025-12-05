@@ -1,5 +1,5 @@
-// File: src/middleware/validation.js
-const Joi = require('joi');
+import Joi from 'joi';
+import { Request, Response, NextFunction } from 'express';
 
 const purchaseSchema = Joi.object({
   userId: Joi.string().required().pattern(/^[0-9]+$/),
@@ -8,19 +8,19 @@ const purchaseSchema = Joi.object({
   idempotencyKey: Joi.string().max(128).optional()
 });
 
-function validatePurchase(req, res, next) {
+function validatePurchase(req: Request, res: Response, next: NextFunction) {
   const { error, value } = purchaseSchema.validate(req.body);
-  
+
   if (error) {
     return res.status(400).json({
       error: 'VALIDATION_ERROR',
-      details: error.details.map(d => d.message)
+      details: error.details.map((d: any) => d.message)
     });
   }
-  
-  req.validatedBody = value;
+
+  // Attach validated payload; keep typing loose to avoid global augmentation here
+  (req as any).validatedBody = value;
   next();
 }
 
-module.exports = { validatePurchase };
-
+export { validatePurchase };

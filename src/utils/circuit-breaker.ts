@@ -1,14 +1,21 @@
-// File: src/utils/circuit-breaker.js
+type CircuitState = 'CLOSED' | 'OPEN' | 'HALF_OPEN';
+
 class CircuitBreaker {
-  constructor(options = {}) {
-    this.failureThreshold = options.failureThreshold || 5;
-    this.resetTimeout = options.resetTimeout || 60000;  // 1 minute
-    this.state = 'CLOSED';  // CLOSED, OPEN, HALF_OPEN
+  failureThreshold: number;
+  resetTimeout: number;
+  state: CircuitState;
+  failures: number;
+  nextAttempt: number;
+
+  constructor(options: { failureThreshold?: number; resetTimeout?: number } = {}) {
+    this.failureThreshold = options.failureThreshold ?? 5;
+    this.resetTimeout = options.resetTimeout ?? 60000;
+    this.state = 'CLOSED';
     this.failures = 0;
     this.nextAttempt = Date.now();
   }
 
-  async execute(fn) {
+  async execute<T>(fn: () => Promise<T>): Promise<T> {
     if (this.state === 'OPEN') {
       if (Date.now() < this.nextAttempt) {
         throw new Error('Circuit breaker is OPEN');
@@ -40,5 +47,5 @@ class CircuitBreaker {
   }
 }
 
-module.exports = CircuitBreaker;
-
+export default CircuitBreaker;
+(module as any).exports = CircuitBreaker;

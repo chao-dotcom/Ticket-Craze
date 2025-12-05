@@ -1,18 +1,19 @@
-// File: src/routes/flash.js
-const express = require('express');
+import express, { Request, Response } from 'express';
+
+// Use require for some JS utilities for incremental migration
 const { createClient } = require('redis');
 const { Kafka } = require('kafkajs');
-const Snowflake = require('../utils/snowflake');
+const Snowflake: any = require('../utils/snowflake');
 const { loadLuaScripts } = require('../utils/redis-scripts');
 const { metrics } = require('../utils/metrics');
 
 const router = express.Router();
 
 // Initialize clients
-const redisClient = createClient({ 
+const redisClient: any = createClient({
   url: process.env.REDIS_URL || 'redis://localhost:6379',
-  socket: { 
-    reconnectStrategy: (retries) => Math.min(retries * 50, 500)
+  socket: {
+    reconnectStrategy: (retries: number) => Math.min(retries * 50, 500)
   }
 });
 
@@ -25,28 +26,25 @@ const kafka = new Kafka({
   }
 });
 
-const producer = kafka.producer({
+const producer: any = kafka.producer({
   allowAutoTopicCreation: false,
   transactionTimeout: 30000
 });
 
-let luaScripts = {};
+let luaScripts: any = {};
 let isInitialized = false;
 
 // Startup initialization
 async function initializeFlashSale() {
   if (isInitialized) return;
-  
+
   try {
-    // Check if Redis is already connected before connecting
     if (!redisClient.isOpen) {
       await redisClient.connect();
     }
-    // Connect Kafka producer (kafkajs handles multiple connect calls gracefully)
     try {
       await producer.connect();
-    } catch (error) {
-      // Ignore "already connected" errors
+    } catch (error: any) {
       if (!error.message || !error.message.includes('already')) {
         throw error;
       }
@@ -61,72 +59,66 @@ async function initializeFlashSale() {
 }
 
 // Main purchase endpoint
-router.post('/purchase', async (req, res) => {
+router.post('/purchase', async (req: Request, res: Response) => {
   const startTime = Date.now();
-  
+
   try {
-    // Wait for initialization if needed
     if (!isInitialized) {
       await initializeFlashSale();
     }
 
-    // 1. Validate input
-    const { userId, skuId, quantity = 1, idempotencyKey } = req.body;
-    
+    const { userId, skuId, quantity = 1, idempotencyKey } = req.body as any;
+
     if (!userId || !skuId) {
-      return res.status(400).json({ 
+      return res.status(400).json({
         error: 'INVALID_REQUEST',
-        message: 'userId and skuId are required' 
+        message: 'userId and skuId are required'
       });
     }
 
     if (quantity < 1 || quantity > 10) {
-      return res.status(400).json({ 
+      return res.status(400).json({
         error: 'INVALID_QUANTITY',
-        message: 'Quantity must be between 1 and 10' 
+        message: 'Quantity must be between 1 and 10'
       });
     }
 
-    // 2. Idempotency check
     const idemKey = `idem:${idempotencyKey || `${userId}:${skuId}`}`;
     const isNew = await redisClient.set(idemKey, '1', {
       NX: true,
-      EX: 300  // 5 minutes
+      EX: 300
     });
 
     if (!isNew) {
       metrics.purchaseAttempts.inc({ status: 'duplicate', reason: 'idempotency' });
-      return res.status(409).json({ 
+      return res.status(409).json({
         error: 'DUPLICATE_REQUEST',
-        message: 'This request has already been processed' 
+        message: 'This request has already been processed'
       });
     }
 
-    // 3. Rate limiting
     const rateLimitKey = `bucket:user:${userId}`;
     const rateLimitResult = await redisClient.evalSha(
       luaScripts.tokenBucket,
       {
         keys: [rateLimitKey],
         arguments: ['20', '5', String(Math.floor(Date.now() / 1000)), '1']
-        // capacity=20, rate=5/sec, current_time, tokens_needed=1
       }
     );
 
     if (rateLimitResult === 0) {
       metrics.purchaseAttempts.inc({ status: 'rate_limited', reason: 'token_bucket' });
-      return res.status(429).json({ 
+      return res.status(429).json({
         error: 'RATE_LIMIT_EXCEEDED',
         message: 'Too many requests. Please try again in a moment.',
         retryAfter: 2
       });
     }
 
-    // 4. Atomic inventory check and decrement
     const invKey = `inv:sku:${skuId}`;
     const resvPrefix = `resv:sku:${skuId}`;
     const reservationId = Snowflake.nextId();
-    const ttl = 300;  // 5 minutes to complete purchase
+    const ttl = 300;
 
     const inventoryStart = Date.now();
     const inventoryResult = await redisClient.evalSha(
@@ -138,7 +130,7 @@ router.post('/purchase', async (req, res) => {
           resvPrefix,
           reservationId,
           String(ttl),
-          String(Math.floor(Date.now() / 1000))  // Pass timestamp to avoid non-deterministic TIME call in Lua
+          String(Math.floor(Date.now() / 1000))
         ]
       }
     );
@@ -147,12 +139,11 @@ router.post('/purchase', async (req, res) => {
       (Date.now() - inventoryStart) / 1000
     );
 
-    // Check result
     if (!inventoryResult || inventoryResult[0] !== 1) {
       const currentStock = inventoryResult ? inventoryResult[1] : 0;
       metrics.purchaseAttempts.inc({ status: 'sold_out', reason: 'insufficient_stock' });
       metrics.inventoryOperations.inc({ operation: 'decrement', result: 'failed' });
-      return res.status(410).json({ 
+      return res.status(410).json({
         error: 'SOLD_OUT',
         message: 'This item is currently sold out',
         remainingStock: currentStock
@@ -161,7 +152,6 @@ router.post('/purchase', async (req, res) => {
 
     metrics.inventoryOperations.inc({ operation: 'decrement', result: 'success' });
 
-    // 5. Generate order ID and produce Kafka event
     const orderId = Snowflake.nextId();
     const event = {
       reservationId,
@@ -181,7 +171,7 @@ router.post('/purchase', async (req, res) => {
         key: reservationId,
         value: JSON.stringify(event),
         headers: {
-          'trace-id': req.headers['x-trace-id'] || `trace-${Date.now()}`
+          'trace-id': (req.headers as any)['x-trace-id'] || `trace-${Date.now()}`
         }
       }]
     });
@@ -190,7 +180,6 @@ router.post('/purchase', async (req, res) => {
       (Date.now() - kafkaStart) / 1000
     );
 
-    // 6. Success response
     const duration = Date.now() - startTime;
     metrics.purchaseAttempts.inc({ status: 'success', reason: 'completed' });
     metrics.httpRequestDuration.observe(
@@ -207,19 +196,19 @@ router.post('/purchase', async (req, res) => {
       processingTimeMs: duration
     });
 
-  } catch (error) {
+  } catch (error: any) {
     console.error('Purchase error:', error);
     metrics.purchaseAttempts.inc({ status: 'error', reason: error.message });
     metrics.httpRequestDuration.observe(
       { method: 'POST', route: '/purchase', status_code: 500 },
       (Date.now() - startTime) / 1000
     );
-    res.status(500).json({ 
+    res.status(500).json({
       error: 'INTERNAL_ERROR',
-      message: 'An error occurred. Please try again.' 
+      message: 'An error occurred. Please try again.'
     });
   }
 });
 
 module.exports = { router, initializeFlashSale };
-
+export { router, initializeFlashSale };
