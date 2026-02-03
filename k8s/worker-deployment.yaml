@@ -17,7 +17,7 @@ spec:
       containers:
       - name: worker
         image: flash-sale-api:latest
-        command: ["node", "src/workers/order-worker.js"]
+        command: ["node", "dist/workers/order-worker.js"]
         env:
         - name: NODE_ENV
           value: "production"

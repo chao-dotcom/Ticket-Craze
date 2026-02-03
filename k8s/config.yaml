@@ -5,9 +5,8 @@ metadata:
   name: flash-sale-config
   namespace: flash-sale
 data:
-  kafka-brokers: "kafka-0.kafka-headless:9092,kafka-1.kafka-headless:9092,kafka-2.kafka-headless:9092"
+  kafka-brokers: "kafka-0.kafka-headless.kafka.svc.cluster.local:9092,kafka-1.kafka-headless.kafka.svc.cluster.local:9092,kafka-2.kafka-headless.kafka.svc.cluster.local:9092"
   mysql-host: "mysql-primary.database.svc.cluster.local"
-  redis-host: "redis-master.cache.svc.cluster.local"
 ---
 apiVersion: v1
 kind: Secret
@@ -16,8 +15,8 @@ metadata:
   namespace: flash-sale
 type: Opaque
 stringData:
-  redis-url: "redis://redis-master.cache.svc.cluster.local:6379"
+  redis-url: "redis://redis-0.redis-headless.flash-sale.svc.cluster.local:6379"
   mysql-user: "flashuser"
-  mysql-password: "CHANGE_ME_IN_PRODUCTION"
-  jwt-secret: "CHANGE_ME_IN_PRODUCTION"
+  mysql-password: "flashpass"
+  jwt-secret: "CHANGE_ME_IN_PRODUCTION_USE_LONG_RANDOM_STRING"
 
